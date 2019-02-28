@@ -64,6 +64,11 @@ interface PimcoreAttributeMapperInterface
     const MULTISELECT = 'multiselect';
 
     /**
+     * Pimcore quantityValue type object
+     */
+    const QUANTITYVALUE = 'quantityValue';
+
+    /**
      * @param array $attributeData
      *
      * @return mixed

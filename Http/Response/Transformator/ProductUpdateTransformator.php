@@ -12,6 +12,7 @@ use Divante\PimcoreIntegration\Api\AttributeSetRepositoryInterface;
 use Divante\PimcoreIntegration\Api\Pimcore\PimcoreProductInterface;
 use Divante\PimcoreIntegration\Http\Response\Transformator\Data\PropertyResolverInterface;
 use Divante\PimcoreIntegration\Model\Pimcore\PimcoreProductFactory;
+use Klarna\Core\Exception;
 use Magento\Framework\DataObject;
 use Magento\Framework\DataObjectFactory;
 use Magento\Framework\Exception\LocalizedException;
@@ -49,12 +50,11 @@ class ProductUpdateTransformator implements ResponseTransformatorInterface
 
     /**
      * ProductUpdateTransformator constructor.
-     *
-     * @param DataObjectFactory $dataObjectFactory
-     * @param PimcoreProductFactory $pimcoreProductFactory
+     * @param DataObjectFactory               $dataObjectFactory
+     * @param PimcoreProductFactory           $pimcoreProductFactory
      * @param AttributeSetRepositoryInterface $attributeSetRepository
-     * @param ProductTypeResolver $productTypeResolver
-     * @param PropertyResolverInterface $propertyResolver
+     * @param ProductTypeResolver             $productTypeResolver
+     * @param PropertyResolverInterface       $propertyResolver
      */
     public function __construct(
         DataObjectFactory $dataObjectFactory,
@@ -72,7 +72,6 @@ class ProductUpdateTransformator implements ResponseTransformatorInterface
 
     /**
      * @param Response $response
-     *
      * @throws LocalizedException
      * @return DataObject
      */
@@ -81,36 +80,38 @@ class ProductUpdateTransformator implements ResponseTransformatorInterface
         $dataObject = $this->dataObjectFactory->create();
         $rawResponse = json_decode($response->getBody(), true);
 
-        /** @var array $rawData */
-        $rawData = $rawResponse['data'];
+        if (isset($rawResponse['success']) && $rawResponse['success'] == true) {
+            /** @var array $rawData */
+            $rawData = $rawResponse['data'];
 
-        foreach ($rawData as $productId => $data) {
-            /** @var PimcoreProductInterface $pimcoreProduct */
-            $pimcoreProduct = $this->pimcoreProductFactory->create();
-            $pimcoreProduct->setElements($data['elements']);
+            foreach ($rawData as $productId => $data) {
+                /** @var PimcoreProductInterface $pimcoreProduct */
+                $pimcoreProduct = $this->pimcoreProductFactory->create();
+                $pimcoreProduct->setElements($data['elements']);
 
-            $pimcoreProduct->setData('media_gallery', $this->mergeGalleryWithMediaTypes($pimcoreProduct));
-            $pimcoreProduct->setData('pimcore_id', $productId);
+                $pimcoreProduct->setData('media_gallery', $this->mergeGalleryWithMediaTypes($pimcoreProduct));
+                $pimcoreProduct->setData('pimcore_id', $productId);
 
-            $pimcoreProduct->setData(
-                'attribute_set_id',
-                $this->attributeSetRepository->getByChecksum($data['attr_checksum']['value'])->getAttributeSetId()
-            );
+                $pimcoreProduct->setData(
+                    'attribute_set_id',
+                    $this->attributeSetRepository->getByChecksum($data['attr_checksum']['value'])->getAttributeSetId()
+                );
 
-            $pimcoreProduct->setData('type_id', $this->productTypeResolver->resolveType($data));
+                $pimcoreProduct->setData('type_id', $this->productTypeResolver->resolveType($data));
 
-            $property = $this->propertyResolver->getProperty('configurable_attributes', $data['properties'] ?? []);
+                $property = $this->propertyResolver->getProperty('configurable_attributes', $data['properties'] ?? []);
 
-            if ($property) {
-                $pimcoreProduct->setData('options_property', $property);
+                if ($property) {
+                    $pimcoreProduct->setData('options_property', $property);
+                }
+
+                if (isset($data['type']) && $data['type'] === 'variant' && isset($data['parentId'])) {
+                    $pimcoreProduct->setData('parent_id', $data['parentId']);
+                    $pimcoreProduct->setData('product_type', $data['type']);
+                }
+
+                $dataObject->setData($productId, $pimcoreProduct);
             }
-
-            if (isset($data['type']) && $data['type'] === 'variant' && isset($data['parentId'])) {
-                $pimcoreProduct->setData('parent_id', $data['parentId']);
-                $pimcoreProduct->setData('product_type', $data['type']);
-            }
-
-            $dataObject->setData($productId, $pimcoreProduct);
         }
 
         return $dataObject;
@@ -118,7 +119,6 @@ class ProductUpdateTransformator implements ResponseTransformatorInterface
 
     /**
      * @param PimcoreProductInterface $pimcoreProduct
-     *
      * @return array
      */
     private function mergeGalleryWithMediaTypes(PimcoreProductInterface $pimcoreProduct): array
@@ -143,7 +143,7 @@ class ProductUpdateTransformator implements ResponseTransformatorInterface
             if (!$item) {
                 continue;
             }
-            if (in_array((string) $key, $mediaTypes, true)) {
+            if (in_array((string)$key, $mediaTypes, true)) {
                 $newMediaGallery[$item][] = $key;
             } else {
                 $newMediaGallery[$item] = $newMediaGallery[$item] ?? ['media_gallery'];

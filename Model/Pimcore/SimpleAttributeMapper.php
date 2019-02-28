@@ -32,6 +32,8 @@ class SimpleAttributeMapper implements PimcoreAttributeMapperInterface
             case self::DATETIME:
             case self::WYSIWYG:
                 return $this->mapText($attributeData);
+            case self::QUANTITYVALUE:
+                return $this->mapQuantityValue($attributeData);
             case self::SELECT:
                 return $this->mapSelect($attributeData);
             case self::MULTISELECT:
@@ -44,6 +46,16 @@ class SimpleAttributeMapper implements PimcoreAttributeMapperInterface
             default:
                 return null;
         }
+    }
+
+    /**
+     * @param array $attributeData
+     *
+     * @return mixed
+     */
+    private function mapQuantityValue(array $attributeData)
+    {
+        return $attributeData['value'];
     }
 
     /**
@@ -132,6 +144,9 @@ class SimpleAttributeMapper implements PimcoreAttributeMapperInterface
         $mappedResult = [];
         /** @var array $objects */
         $objects = $attributeData['value'];
+        if (isset($objects['value'])) {
+            $objects = $objects['value'];
+        }
 
         foreach ($objects as $data) {
             $mappedResult[] = $this->mapUsingType($data);

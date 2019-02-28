@@ -75,7 +75,7 @@ class CategoryUpdateTransformator implements ResponseTransformatorInterface
                 ->setData('pimcore_id', $id)
                 ->setData('image', $elements['image']['value']['id'] ?? false);
 
-            if ($elements['url_key']['value']) {
+            if (isset($elements['url_key']['value']) && $elements['url_key']['value']) {
                 $flatData->setData('url_key', $elements['url_key']['value']);
             }
 
