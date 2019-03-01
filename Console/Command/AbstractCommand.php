@@ -15,18 +15,6 @@ use Symfony\Component\Console\Output\OutputInterface;
  */
 abstract class AbstractCommand extends Command
 {
-    
-    /**
-     * @var \Magento\Framework\ObjectManagerInterface
-     */
-    protected $objectManager;
-    
-    /**
-     * Object manager factory
-     *
-     * @var ObjectManagerFactory
-     */
-    protected $objectManagerFactory;
 
     /**
      * @var State
@@ -39,17 +27,16 @@ abstract class AbstractCommand extends Command
     private $registry;
 
     /**
-     * ProductImport constructor.
-     *
-     * @param ProductQueueProcessor $productQueueProcessor
-     * @param State $state
+     * AbstractCommand constructor.
+     * @param State    $state
      * @param Registry $registry
-     * @param null $name
+     * @param string     $name
      */
+
     public function __construct(
         State $state,
         Registry $registry,
-        $name = null
+        string $name = null
     ) {
         parent::__construct($name);
         $this->state = $state;
