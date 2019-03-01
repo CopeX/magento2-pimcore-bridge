@@ -40,7 +40,7 @@ class ProductImportCommand extends AbstractCommand
     }
 
     /**
-     * Configures the current command.a
+     * Configures the current command.
      * @return void
      */
     public function configure()

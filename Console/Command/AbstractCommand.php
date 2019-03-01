@@ -52,7 +52,7 @@ abstract class AbstractCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         try {
-            $this->state->setAreaCode(\Magento\Framework\App\Area::AREA_FRONTEND);
+            $this->state->setAreaCode(\Magento\Framework\App\Area::AREA_ADMINHTML);
         } catch (\Exception $ex) {
             // fail gracefully
         }
