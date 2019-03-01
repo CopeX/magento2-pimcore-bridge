@@ -9,7 +9,8 @@
 namespace Divante\PimcoreIntegration\Console\Command;
 
 use Divante\PimcoreIntegration\Queue\Processor\AssetQueueProcessor;
-use Magento\Framework\App\ObjectManagerFactory;
+use Magento\Framework\App\State;
+use Magento\Framework\Registry;
 
 /**
  * Class AssetsImportCommand
@@ -29,10 +30,11 @@ class AssetsImportCommand extends AbstractCommand
      * @param Registry $registry
      * @param null $name
      */
-    public function __construct(AssetQueueProcessor $queueProcessor,  ObjectManagerFactory $objectManagerFactory, $name = null)
+    public function __construct(AssetQueueProcessor $queueProcessor,  State $state,
+        Registry $registry, $name = null)
     {
         $this->queueProcessor = $queueProcessor;
-        parent::__construct($objectManagerFactory, $name);
+        parent::__construct($state, $registry , $name);
     }
 
     /**

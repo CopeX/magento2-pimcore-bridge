@@ -2,13 +2,9 @@
 
 namespace Divante\PimcoreIntegration\Console\Command;
 
-use Magento\Backend\App\Area\FrontNameResolver;
-use Magento\Framework\App\ObjectManagerFactory;
-use Magento\Store\Model\StoreManager;
-use Magento\Store\Model\Store;
+use Magento\Framework\App\State;
+use Magento\Framework\Registry;
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Input\InputArgument;
-use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -31,27 +27,33 @@ abstract class AbstractCommand extends Command
      * @var ObjectManagerFactory
      */
     protected $objectManagerFactory;
-    
-    /**
-     * @var InputInterface $inputInterface
-     */
-    protected $inputInterface;
 
     /**
-     * @var OutputInterface $outputInterface
+     * @var State
      */
-    protected $outputInterface;
+    private $state;
 
     /**
-     * AbstractCommand constructor.
-     * @param ObjectManagerFactory $objectManagerFactory
-     * @param null                 $name
+     * @var Registry
      */
-    public function __construct( ObjectManagerFactory $objectManagerFactory, $name = null)
-    {
-        $this->objectManagerFactory = $objectManagerFactory;
+    private $registry;
 
+    /**
+     * ProductImport constructor.
+     *
+     * @param ProductQueueProcessor $productQueueProcessor
+     * @param State $state
+     * @param Registry $registry
+     * @param null $name
+     */
+    public function __construct(
+        State $state,
+        Registry $registry,
+        $name = null
+    ) {
         parent::__construct($name);
+        $this->state = $state;
+        $this->registry = $registry;
     }
 
     /**
@@ -62,22 +64,13 @@ abstract class AbstractCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $this->inputInterface = $input;
-        $this->outputInterface = $output;
-        $omParams = $_SERVER;
-        $omParams[StoreManager::PARAM_RUN_CODE] = 'admin';
-        $omParams[Store::CUSTOM_ENTRY_POINT_PARAM] = true;
-        // Need to use object manager because in some cercumstances areaCode will otherwise not be set correct
-        $this->objectManager = $this->objectManagerFactory->create($omParams);
-        $this->objectManager->get("Magento\Framework\Registry")->register('isSecureArea', true);
-        $area = FrontNameResolver::AREA_CODE;
+        try {
+            $this->state->setAreaCode(\Magento\Framework\App\Area::AREA_FRONTEND);
+        } catch (\Exception $ex) {
+            // fail gracefully
+        }
 
-        /** @var \Magento\Framework\App\State $appState */
-        $appState = $this->objectManager->get('Magento\Framework\App\State');
-        $appState->setAreaCode($area);
-        $configLoader = $this->objectManager->get('Magento\Framework\ObjectManager\ConfigLoaderInterface');
-        $this->objectManager->configure($configLoader->load($area));
-
+        $this->registry->register('isSecureArea', true);
 
         $start = $this->getCurrentMs();
 
