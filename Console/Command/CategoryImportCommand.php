@@ -9,32 +9,17 @@
 namespace Divante\PimcoreIntegration\Console\Command;
 
 use Divante\PimcoreIntegration\Queue\Processor\CategoryQueueProcessor;
-use Magento\Framework\App\Area;
-use Magento\Framework\App\State;
-use Magento\Framework\Registry;
-use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\OutputInterface;
+use Magento\Framework\App\ObjectManagerFactory;
 
 /**
  * Class CategoryImportCommand
  */
-class CategoryImportCommand extends Command
+class CategoryImportCommand extends AbstractCommand
 {
     /**
      * @var CategoryQueueProcessor
      */
     private $categoryQueueProcessor;
-
-    /**
-     * @var State
-     */
-    private $state;
-
-    /**
-     * @var Registry
-     */
-    private $registry;
 
     /**
      * CategoryImport constructor.
@@ -45,16 +30,10 @@ class CategoryImportCommand extends Command
      * @param null $name
      */
     public function __construct(
-        CategoryQueueProcessor $categoryQueueProcessor,
-        State $state,
-        Registry $registry,
-        $name = null
-    ) {
-        parent::__construct($name);
+        CategoryQueueProcessor $categoryQueueProcessor, ObjectManagerFactory $objectManagerFactory, $name = null) {
 
         $this->categoryQueueProcessor = $categoryQueueProcessor;
-        $this->state = $state;
-        $this->registry = $registry;
+        parent::__construct($objectManagerFactory, $name);
     }
 
     /**
@@ -68,47 +47,9 @@ class CategoryImportCommand extends Command
         $this->setDescription('Process category import queue from Pimcore');
     }
 
-    /**
-     * @param InputInterface $input
-     * @param OutputInterface $output
-     *
-     * @return int|null
-     *
-     */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    public function process()
     {
-        try {
-            $this->state->setAreaCode(Area::AREA_ADMINHTML);
-        } catch (\Exception $ex) {
-            // fail gracefully
-        }
-
-        $this->registry->register('isSecureArea', true);
-
-        $start = $this->getCurrentMs();
-
-        $output->writeln('<info>Initialization processing of categories queue.</info>');
-        $output->writeln(sprintf('<info>Started at %s</info>', (new \DateTime())->format('Y-m-d H:i:s')));
-        $output->writeln('Processing...');
-
         $this->categoryQueueProcessor->process();
-
-        $end = $this->getCurrentMs();
-
-        $output->writeln(sprintf('<info>Finished at %s</info>', (new \DateTime())->format('Y-m-d H:i:s')));
-        $output->writeln(sprintf('<info>Total execution time %sms</info>', $end - $start));
-
-        return 0;
     }
 
-    /**
-     *
-     * @return float|int
-     */
-    private function getCurrentMs()
-    {
-        $mt = explode(' ', microtime());
-
-        return ((int) $mt[1]) * 1000 + ((int) round($mt[0] * 1000));
-    }
 }

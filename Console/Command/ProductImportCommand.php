@@ -9,32 +9,18 @@
 namespace Divante\PimcoreIntegration\Console\Command;
 
 use Divante\PimcoreIntegration\Queue\Processor\ProductQueueProcessor;
-use Magento\Framework\App\State;
-use Magento\Framework\Registry;
-use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\OutputInterface;
+use Magento\Framework\App\ObjectManagerFactory;
 
 /**
  * Class ProductImportCommand
  */
-class ProductImportCommand extends Command
+class ProductImportCommand extends AbstractCommand
 {
     /**
      * @var ProductQueueProcessor
      */
     private $productQueueProcessor;
-
-    /**
-     * @var State
-     */
-    private $state;
-
-    /**
-     * @var Registry
-     */
-    private $registry;
-
+    
     /**
      * ProductImport constructor.
      *
@@ -45,15 +31,10 @@ class ProductImportCommand extends Command
      */
     public function __construct(
         ProductQueueProcessor $productQueueProcessor,
-        State $state,
-        Registry $registry,
-        $name = null
+        ObjectManagerFactory $objectManagerFactory, $name = null
     ) {
-        parent::__construct($name);
-
+        parent::__construct($objectManagerFactory, $name);
         $this->productQueueProcessor = $productQueueProcessor;
-        $this->state = $state;
-        $this->registry = $registry;
     }
 
     /**
@@ -67,47 +48,9 @@ class ProductImportCommand extends Command
         $this->setDescription('Process all new published products from Pimcore');
     }
 
-    /**
-     * @param InputInterface $input
-     * @param OutputInterface $output
-     *
-     * @return int|null
-     *
-     */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    public function process()
     {
-        try {
-            $this->state->setAreaCode(\Magento\Framework\App\Area::AREA_FRONTEND);
-        } catch (\Exception $ex) {
-            // fail gracefully
-        }
-
-        $this->registry->register('isSecureArea', true);
-
-        $start = $this->getCurrentMs();
-
-        $output->writeln('<info>Initialization processing of products queue.</info>');
-        $output->writeln(sprintf('<info>Started at %s</info>', (new \DateTime())->format('Y-m-d H:i:s')));
-        $output->writeln('Processing...');
-
         $this->productQueueProcessor->process();
-
-        $end = $this->getCurrentMs();
-
-        $output->writeln(sprintf('<info>Finished at %s</info>', (new \DateTime())->format('Y-m-d H:i:s')));
-        $output->writeln(sprintf('<info>Total execution time %sms</info>', $end - $start));
-
-        return 0;
     }
 
-    /**
-     *
-     * @return float|int
-     */
-    private function getCurrentMs()
-    {
-        $mt = explode(' ', microtime());
-
-        return ((int) $mt[1]) * 1000 + ((int) round($mt[0] * 1000));
-    }
 }

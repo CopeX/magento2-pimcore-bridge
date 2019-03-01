@@ -9,31 +9,17 @@
 namespace Divante\PimcoreIntegration\Console\Command;
 
 use Divante\PimcoreIntegration\Queue\Processor\AssetQueueProcessor;
-use Magento\Framework\App\State;
-use Magento\Framework\Registry;
-use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\OutputInterface;
+use Magento\Framework\App\ObjectManagerFactory;
 
 /**
  * Class AssetsImportCommand
  */
-class AssetsImportCommand extends Command
+class AssetsImportCommand extends AbstractCommand
 {
     /**
      * @var AssetQueueProcessor
      */
     private $queueProcessor;
-
-    /**
-     * @var State
-     */
-    private $state;
-
-    /**
-     * @var Registry
-     */
-    private $registry;
 
     /**
      * AssetsImportCommand constructor.
@@ -43,13 +29,10 @@ class AssetsImportCommand extends Command
      * @param Registry $registry
      * @param null $name
      */
-    public function __construct(AssetQueueProcessor $queueProcessor, State $state, Registry $registry, $name = null)
+    public function __construct(AssetQueueProcessor $queueProcessor,  ObjectManagerFactory $objectManagerFactory, $name = null)
     {
         $this->queueProcessor = $queueProcessor;
-        $this->state = $state;
-        $this->registry = $registry;
-
-        parent::__construct();
+        parent::__construct($objectManagerFactory, $name);
     }
 
     /**
@@ -62,46 +45,8 @@ class AssetsImportCommand extends Command
         $this->setName('divante:queue-asset:process')->setDescription('Process assets queue');
     }
 
-    /**
-     * @param InputInterface $input
-     * @param OutputInterface $output
-     *
-     * @return int|null
-     */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    public function process()
     {
-        try {
-            $this->state->setAreaCode(\Magento\Framework\App\Area::AREA_FRONTEND);
-        } catch (\Exception $ex) {
-            // fail gracefully
-        }
-
-        $this->registry->register('isSecureArea', true);
-
-        $start = $this->getCurrentMs();
-
-        $output->writeln('<info>Initialization processing of assets queue.</info>');
-        $output->writeln(sprintf('<info>Started at %s</info>', (new \DateTime())->format('Y-m-d H:i:s')));
-        $output->writeln('Processing...');
-
         $this->queueProcessor->process();
-
-        $end = $this->getCurrentMs();
-
-        $output->writeln(sprintf('<info>Finished at %s</info>', (new \DateTime())->format('Y-m-d H:i:s')));
-        $output->writeln(sprintf('<info>Total execution time %sms</info>', $end - $start));
-
-        return 0;
-    }
-
-    /**
-     *
-     * @return float|int
-     */
-    private function getCurrentMs()
-    {
-        $mt = explode(' ', microtime());
-
-        return ((int) $mt[1]) * 1000 + ((int) round($mt[0] * 1000));
     }
 }
