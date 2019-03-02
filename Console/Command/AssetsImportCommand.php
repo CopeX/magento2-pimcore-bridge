@@ -24,22 +24,23 @@ class AssetsImportCommand extends AbstractCommand
 
     /**
      * AssetsImportCommand constructor.
-     *
      * @param AssetQueueProcessorFactory $queueProcessor
-     * @param State $state
-     * @param Registry $registry
-     * @param null $name
+     * @param State                      $state
+     * @param Registry                   $registry
+     * @param null                       $name
      */
-    public function __construct(AssetQueueProcessorFactory $queueProcessor,  State $state,
-        Registry $registry, $name = null)
-    {
+    public function __construct(
+        AssetQueueProcessorFactory $queueProcessor,
+        State $state,
+        Registry $registry,
+        $name = null
+    ) {
         $this->queueProcessor = $queueProcessor;
-        parent::__construct($state, $registry , $name);
+        parent::__construct($state, $registry, $name);
     }
 
     /**
      * Configure command
-     *
      * @return void
      */
     protected function configure()
