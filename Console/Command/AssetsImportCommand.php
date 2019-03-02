@@ -49,6 +49,6 @@ class AssetsImportCommand extends AbstractCommand
 
     public function process()
     {
-        $this->queueProcessor->process();
+        $this->queueProcessor->create()->process();
     }
 }
