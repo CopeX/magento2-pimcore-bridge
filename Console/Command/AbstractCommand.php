@@ -16,6 +16,8 @@ use Symfony\Component\Console\Output\OutputInterface;
 abstract class AbstractCommand extends Command
 {
 
+    const IS_CLI = "pimcoreImport";
+
     /**
      * @var State
      */
@@ -58,6 +60,7 @@ abstract class AbstractCommand extends Command
         }
 
         $this->registry->register('isSecureArea', true);
+        $this->registry->register(self::IS_CLI, true);
 
         $start = $this->getCurrentMs();
 
