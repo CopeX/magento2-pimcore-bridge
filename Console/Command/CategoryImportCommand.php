@@ -8,7 +8,7 @@
 
 namespace Divante\PimcoreIntegration\Console\Command;
 
-use Divante\PimcoreIntegration\Queue\Processor\CategoryQueueProcessor;
+use Divante\PimcoreIntegration\Queue\Processor\CategoryQueueProcessorFactory;
 use Magento\Framework\App\State;
 use Magento\Framework\Registry;
 
@@ -18,20 +18,20 @@ use Magento\Framework\Registry;
 class CategoryImportCommand extends AbstractCommand
 {
     /**
-     * @var CategoryQueueProcessor
+     * @var CategoryQueueProcessorFactory
      */
     private $categoryQueueProcessor;
 
     /**
      * CategoryImport constructor.
      *
-     * @param CategoryQueueProcessor $categoryQueueProcessor
+     * @param CategoryQueueProcessorFactory $categoryQueueProcessor
      * @param State $state
      * @param Registry $registry
      * @param null $name
      */
     public function __construct(
-        CategoryQueueProcessor $categoryQueueProcessor,  State $state,
+        CategoryQueueProcessorFactory $categoryQueueProcessor,  State $state,
         Registry $registry, $name = null) {
 
         $this->categoryQueueProcessor = $categoryQueueProcessor;
@@ -51,7 +51,7 @@ class CategoryImportCommand extends AbstractCommand
 
     public function process()
     {
-        $this->categoryQueueProcessor->process();
+        $this->categoryQueueProcessor->create()->process();
     }
 
 }

@@ -8,7 +8,7 @@
 
 namespace Divante\PimcoreIntegration\Console\Command;
 
-use Divante\PimcoreIntegration\Queue\Processor\ProductQueueProcessor;
+use Divante\PimcoreIntegration\Queue\Processor\ProductQueueProcessorFactory;
 use Magento\Framework\App\State;
 use Magento\Framework\Registry;
 
@@ -18,19 +18,19 @@ use Magento\Framework\Registry;
 class ProductImportCommand extends AbstractCommand
 {
     /**
-     * @var ProductQueueProcessor
+     * @var ProductQueueProcessorFactory
      */
     private $productQueueProcessor;
 
     /**
      * ProductImport constructor.
-     * @param ProductQueueProcessor $productQueueProcessor
+     * @param ProductQueueProcessorFactory $productQueueProcessor
      * @param State                 $state
      * @param Registry              $registry
      * @param null                  $name
      */
     public function __construct(
-        ProductQueueProcessor $productQueueProcessor,
+        ProductQueueProcessorFactory $productQueueProcessor,
         State $state,
         Registry $registry,
         $name = null
@@ -51,7 +51,7 @@ class ProductImportCommand extends AbstractCommand
 
     public function process()
     {
-        $this->productQueueProcessor->process();
+        $this->productQueueProcessor->create()->process();
     }
 
 }
